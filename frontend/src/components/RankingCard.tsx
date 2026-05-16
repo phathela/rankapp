@@ -92,7 +92,7 @@ export default function RankingCard({ ranking }: RankingCardProps) {
           {isCompleted && ranking.winnerEntityName && (
             <div className="mt-3 pt-3 border-t flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-medium text-yellow-600">
+              <span className="text-sm font-medium text-yellow-400">
                 Winner: {ranking.winnerEntityName}
               </span>
             </div>

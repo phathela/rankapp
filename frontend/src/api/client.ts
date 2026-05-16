@@ -34,25 +34,23 @@ export interface Ranking {
   id: string;
   title: string;
   description?: string;
-  categoryId: string;
-  category: Category;
   subcategoryId: string;
-  subcategory: Subcategory;
-  status: 'active' | 'completed' | 'cancelled';
-  periodType: 'month' | 'quarter' | 'year' | 'custom';
+  subcategory: Subcategory & { category?: Category };
+  initiatorId: string;
+  initiator: { id: string; username: string };
+  status: string;
+  periodType: string;
   periodStart: string;
   periodEnd: string;
-  durationDays: number;
+  rankingDurationDays?: number;
   pointsPerRank: number;
-  initiatorId: string;
-  initiator: User;
-  totalVotes: number;
-  totalPoints: number;
-  winner?: Vote;
-  winnerId?: string;
+  totalVotesCollected?: number;
+  winnerEntityName?: string;
+  winnerCertificateUrl?: string;
+  imageUrl?: string;
   createdAt: string;
-  completedAt?: string;
-  endsAt: string;
+  closedAt?: string;
+  _count?: { votes: number; comments: number };
 }
 
 export interface Vote {
