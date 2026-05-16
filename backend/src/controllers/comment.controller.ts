@@ -155,8 +155,8 @@ export async function getComments(req: Request, res: Response): Promise<void> {
       commentsWithLikeStatus = comments.map((comment) => ({
         ...comment,
         likedByMe: likedCommentIds.has(comment.id),
-        _count: undefined,
         likeCount: comment._count.likes,
+        _count: { likes: comment._count.likes },
       }));
     }
 

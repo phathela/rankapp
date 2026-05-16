@@ -2,13 +2,17 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { ToastProvider, ToastViewport } from '@/components/ui/toast';
 
-export default function Layout() {
+interface LayoutProps {
+  children?: React.ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
   return (
     <ToastProvider>
       <div className="relative flex min-h-screen flex-col bg-grid-pattern">
         <Navbar />
         <main className="flex-1">
-          <Outlet />
+          {children || <Outlet />}
         </main>
         <footer className="border-t bg-background">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

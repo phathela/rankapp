@@ -172,7 +172,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recentWinners.slice(0, 4).map((ranking) => (
+              {recentWinners.slice(0, 4).map((ranking: Ranking) => (
                 <RankingCard key={ranking.id} ranking={ranking} />
               ))}
             </div>
