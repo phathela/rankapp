@@ -29,7 +29,7 @@ COPY --from=backend-build /app/backend/prisma ./prisma
 COPY --from=frontend-build /app/frontend/dist ./public
 
 # Install only production deps for Prisma
-RUN npm prune --production
+RUN apk add --no-cache openssl && npm prune --production
 
 EXPOSE 3001
 
