@@ -110,6 +110,7 @@ model Ranking {
   comments            Comment[]
   revenueDistribution RevenueDistribution?
   winnerCertificate   WinnerCertificate?
+  engagementScores    EngagementScore[]
 
   @@map("rankings")
 }
@@ -135,7 +136,7 @@ model Comment {
   id          String       @id @default(cuid())
   userId      String       @map("user_id")
   rankingId   String       @map("ranking_id")
-  voteId      String?      @map("vote_id")
+  voteId      String?      @unique @map("vote_id")
   commentText String       @map("comment_text")
   createdAt   DateTime     @default(now()) @map("created_at")
   user        User         @relation(fields: [userId], references: [id])
