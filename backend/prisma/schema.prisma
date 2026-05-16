@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PeriodType {
+  Month
+  Year
+  BetweenMonths
+  BetweenYears
+}
+
+enum RankingStatus {
+  Draft
+  Active
+  Completed
+  Expired
+}
+
+enum TransactionStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum DistributionStatus {
+  Pending
+  Completed
+}
+
+model User {
+  id           String              @id @default(cuid())
+  email        String              @unique
+  username     String              @unique
+  passwordHash String              @map("password_hash")
+  ranksBalance Float               @default(0) @map("ranks_balance")
+  isAdmin      Boolean             @default(false) @map("is_admin")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  rankings     Ranking[]
+  votes        Vote[]
+  comments     Comment[]
+  transactions Transaction[]
+  engagementScores EngagementScore[]
+  commentLikes CommentLike[]
+  subscriptions CategorySubscription[]
+
+  @@map("users")
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  iconUrl       String?       @map("icon_url")
+  subcategories Subcategory[]
+  subscriptions CategorySubscription[]
+
+  @@map("categories")
+}
+
+model CategorySubscription {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@map("category_subscriptions")
+}
+
+model Subcategory {
+  id         String    @id @default(cuid())
+  name       String
+  slug       String
+  categoryId String    @map("category_id")
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  rankings   Ranking[]
+
+  @@unique([slug, categoryId])
+  @@map("subcategories")
+}
+
+model Ranking {
+  id                  String         @id @default(cuid())
+  title               String
+  subcategoryId       String         @map("subcategory_id")
+  initiatorId         String         @map("initiator_id")
+  periodType          PeriodType     @map("period_type")
+  periodStart         DateTime       @map("period_start")
+  periodEnd           DateTime       @map("period_end")
+  rankingDurationDays Int            @map("ranking_duration_days")
+  pointsPerRank       Int            @default(20) @map("points_per_rank")
+  status              RankingStatus  @default(Draft)
+  totalVotesCollected Float          @default(0) @map("total_votes_collected")
+  winnerEntityName    String?        @map("winner_entity_name")
+  winnerCertificateUrl String?       @map("winner_certificate_url")
+  description         String?
+  imageUrl            String?        @map("image_url")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  closedAt            DateTime?      @map("closed_at")
+  subcategory         Subcategory    @relation(fields: [subcategoryId], references: [id])
+  initiator           User           @relation(fields: [initiatorId], references: [id])
+  votes               Vote[]
+  comments            Comment[]
+  revenueDistribution RevenueDistribution?
+  winnerCertificate   WinnerCertificate?
+
+  @@map("rankings")
+}
+
+model Vote {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  rankingId     String   @map("ranking_id")
+  pointsVoted   Int      @map("points_voted")
+  ranksSpent    Float    @map("ranks_spent")
+  motivationText String  @map("motivation_text")
+  proofLinks    String[] @map("proof_links")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id])
+  ranking       Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  comment       Comment?
+
+  @@unique([userId, rankingId])
+  @@map("votes")
+}
+
+model Comment {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  rankingId   String       @map("ranking_id")
+  voteId      String?      @map("vote_id")
+  commentText String       @map("comment_text")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  user        User         @relation(fields: [userId], references: [id])
+  ranking     Ranking      @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  vote        Vote?        @relation(fields: [voteId], references: [id])
+  likes       CommentLike[]
+
+  @@map("comments")
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  commentId String   @map("comment_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@map("comment_likes")
+}
+
+model Transaction {
+  id                   String            @id @default(cuid())
+  userId               String            @map("user_id")
+  amountRanks          Float             @map("amount_ranks")
+  amountUsd            Int?              @map("amount_usd")
+  stripePaymentIntentId String?          @map("stripe_payment_intent_id")
+  status               TransactionStatus @default(Pending)
+  createdAt            DateTime          @default(now()) @map("created_at")
+  user                 User              @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+model RevenueDistribution {
+  id                  String             @id @default(cuid())
+  rankingId           String             @unique @map("ranking_id")
+  totalRanks          Float              @map("total_ranks")
+  initiatorShare      Float              @map("initiator_share")
+  charityShare        Float              @map("charity_share")
+  topContributorsShare Float             @map("top_contributors_share")
+  platformShare       Float              @map("platform_share")
+  charityName         String?            @map("charity_name")
+  charityContact      String?            @map("charity_contact")
+  distributionStatus  DistributionStatus @default(Pending) @map("distribution_status")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  ranking             Ranking            @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+
+  @@map("revenue_distributions")
+}
+
+model EngagementScore {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  rankingId       String   @map("ranking_id")
+  motivationScore Int?     @map("motivation_score")
+  sharesCount     Int      @default(0) @map("shares_count")
+  commentsLikes   Int      @default(0) @map("comments_likes")
+  finalScore      Float?   @map("final_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User     @relation(fields: [userId], references: [id])
+  ranking         Ranking? @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, rankingId])
+  @@map("engagement_scores")
+}
+
+model WinnerCertificate {
+  id                String   @id @default(cuid())
+  rankingId         String   @unique @map("ranking_id")
+  winnerName        String   @map("winner_name")
+  certificatePdfUrl String   @map("certificate_pdf_url")
+  issuedAt          DateTime @default(now()) @map("issued_at")
+  ranking           Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+
+  @@map("winner_certificates")
+}
