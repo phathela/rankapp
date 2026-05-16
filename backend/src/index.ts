@@ -73,6 +73,15 @@ app.use('/api', routes);
 
 // Serve static frontend in production
 const publicPath = path.resolve(__dirname, '../../public');
+const fs = require('fs');
+console.log('[startup] publicPath:', publicPath);
+console.log('[startup] __dirname:', __dirname);
+try {
+  const files = fs.readdirSync(publicPath);
+  console.log('[startup] public/ files:', files);
+} catch (e: any) {
+  console.log('[startup] public/ error:', e.message);
+}
 app.use(express.static(publicPath));
 
 // Health check
